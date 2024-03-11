@@ -10,10 +10,8 @@ public class PlayerController : NetworkBehaviour, IPlayerActions
     private PlayerInput _playerInput;
     private Vector2 _moveInput = new();
     private Vector2 _cursorLocation;
-
     private Transform _shipTransform;
     private Rigidbody2D _rb;
-
     private Transform turretPivotTransform;
 
 
@@ -23,7 +21,6 @@ public class PlayerController : NetworkBehaviour, IPlayerActions
     [SerializeField] private float movementSpeed = 5f;
     [SerializeField] private float shipRotationSpeed = 100f;
     [SerializeField] private float turretRotationSpeed = 4f;
-
 
     public override void OnNetworkSpawn()
     {
@@ -41,10 +38,6 @@ public class PlayerController : NetworkBehaviour, IPlayerActions
         turretPivotTransform = transform.Find("PivotTurret");
         if (turretPivotTransform == null) Debug.LogError("PivotTurret is not found", gameObject);
     }
-
-
-
-
 
     public void OnFire(UnityEngine.InputSystem.InputAction.CallbackContext context)
     {
@@ -65,6 +58,7 @@ public class PlayerController : NetworkBehaviour, IPlayerActions
 
     private void FixedUpdate()
     {
+
         if (!IsOwner) return;
         _rb.velocity = transform.up * _moveInput.y * movementSpeed;
         _rb.MoveRotation(_rb.rotation + _moveInput.x * -shipRotationSpeed * Time.fixedDeltaTime);
