@@ -10,14 +10,21 @@ public class Health : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if(!IsServer) return;
+        if (!IsServer) return;
         currentHealth.Value = 100;
     }
 
 
-    public void TakeDamage(int damage){
-        damage = damage<0? damage:-damage;
+    public void TakeDamage(int damage)
+    {
+        damage = damage < 0 ? damage : -damage;
         currentHealth.Value += damage;
+    }
+
+    public void Heal(int healing)
+    {
+        currentHealth.Value += healing;
+        Debug.Log(currentHealth.Value);
     }
 
 }
