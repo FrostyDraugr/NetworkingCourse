@@ -13,8 +13,6 @@ public class PlayerController : NetworkBehaviour, IPlayerActions
     private Transform _shipTransform;
     private Rigidbody2D _rb;
     private Transform turretPivotTransform;
-
-
     public UnityAction<bool> onFireEvent;
 
     [Header("Settings")]

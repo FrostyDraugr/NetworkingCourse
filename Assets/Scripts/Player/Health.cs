@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Health : NetworkBehaviour
 {
@@ -11,8 +12,14 @@ public class Health : NetworkBehaviour
     [SerializeField] PlayerController _playerController;
     [SerializeField] FiringAction _firingController;
     [SerializeField] GameObject _deathScreen;
+    private UnityAction _onDeathEvent;
+    private UnityAction _respawnEvent;
+    private bool _isDead = false;
+    private NetworkVariable<int> _respawnTokens = new NetworkVariable<int>(3, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public override void OnNetworkSpawn()
     {
+        _onDeathEvent += Death;
+
         if (!IsServer) return;
         _currentHealth.Value = 100;
     }
@@ -24,12 +31,24 @@ public class Health : NetworkBehaviour
 
     private void CheckDeath(int previousValue, int newValue)
     {
-        if (!IsOwner) return;
         if (_currentHealth.Value <= 0)
+            _onDeathEvent.Invoke();
+    }
+
+    private void Death()
+    {
+        if (IsOwner)
         {
             transform.position = new Vector3(100, 100, 0);
             _playerController.enabled = false;
-            _deathScreen.SetActive(true);
+        }
+
+        if (IsServer)
+        {
+            _respawnTokens.Value--;
+
+            if (_respawnTokens.Value > 0)
+                StartCoroutine(RespawnEvent());
         }
     }
 
@@ -39,9 +58,10 @@ public class Health : NetworkBehaviour
         _currentHealth.Value += damage;
     }
 
-    public void Respawn()
+    IEnumerator RespawnEvent()
     {
-        if (!IsOwner) return;
+        yield return new WaitForSeconds(2);
+
         int xPosition = Random.Range(-4, 4);
         int yPosition = Random.Range(-2, 2);
         transform.position = new Vector3(xPosition, yPosition, 0);
@@ -49,10 +69,10 @@ public class Health : NetworkBehaviour
         _playerController.enabled = true;
         _deathScreen.SetActive(false);
 
-
-        //NEEDS TO BE MOVED TO SERVER AUTHORITY
         _firingController.AddAmmo(100);
         _currentHealth.Value = 100;
+
+        yield break;
     }
 
     public void Heal(int healing)
