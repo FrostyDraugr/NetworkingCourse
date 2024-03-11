@@ -20,6 +20,11 @@ public class FiringAction : NetworkBehaviour
         _currentAmmo.OnValueChanged += UpdateText;
     }
 
+    public void AddAmmo(int tooAdd)
+    {
+        _currentAmmo.Value = Mathf.Clamp(_currentAmmo.Value + tooAdd, 0, 10);
+    }
+
     private void UpdateText(int previousValue, int newValue)
     {
         _ammoText.text = _currentAmmo.Value.ToString() + " / 10";

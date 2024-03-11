@@ -10,11 +10,14 @@ public class HealingKit : NetworkBehaviour
     // Start is called before the first frame update
     void OnTriggerEnter2D(Collider2D other)
     {
-        Health health = other.GetComponent<Health>();
-        if (!health) return;
-        health.Heal(_healAmount);
+        if (IsServer)
+        {
+            Health health = other.GetComponent<Health>();
+            if (!health) return;
+            health.Heal(_healAmount);
 
-        NetworkObject networkObject = gameObject.GetComponent<NetworkObject>();
-        networkObject.Despawn();
+            NetworkObject networkObject = gameObject.GetComponent<NetworkObject>();
+            networkObject.Despawn();
+        }
     }
 }
