@@ -76,5 +76,4 @@ public class PlayerController : NetworkBehaviour, IPlayerActions
     {
         _cursorLocation = context.ReadValue<Vector2>();
     }
-
 }
