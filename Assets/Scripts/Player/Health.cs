@@ -12,50 +12,42 @@ public class Health : NetworkBehaviour
     [SerializeField] PlayerController _playerController;
     [SerializeField] FiringAction _firingController;
     [SerializeField] GameObject _deathScreen;
-    private UnityAction _onDeathEvent;
-    private UnityAction _respawnEvent;
-    private bool _isDead = false;
+    private NetworkVariable<bool> _dead = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     private NetworkVariable<int> _respawnTokens = new NetworkVariable<int>(3, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<bool> _respawnRequest = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
     public override void OnNetworkSpawn()
     {
-        _onDeathEvent += Death;
+        _dead.OnValueChanged += Death;
 
         if (!IsServer) return;
         _currentHealth.Value = 100;
     }
 
-    void Start()
+    private void Death(bool previousValue, bool newValue)
     {
-        _currentHealth.OnValueChanged += CheckDeath;
-    }
+        if (newValue == false) return;
 
-    private void CheckDeath(int previousValue, int newValue)
-    {
-        if (_currentHealth.Value <= 0)
-            _onDeathEvent.Invoke();
-    }
-
-    private void Death()
-    {
         if (IsOwner)
         {
-            transform.position = new Vector3(100, 100, 0);
+            transform.position = new Vector3(1000, 1000, 0);
+
             _playerController.enabled = false;
-        }
-
-        if (IsServer)
-        {
-            _respawnTokens.Value--;
-
-            if (_respawnTokens.Value > 0)
-                StartCoroutine(RespawnEvent());
+            _deathScreen.SetActive(true);
         }
     }
 
     public void TakeDamage(int damage)
     {
+        if (!IsServer) return;
+
         damage = damage < 0 ? damage : -damage;
         _currentHealth.Value += damage;
+
+        if (_currentHealth.Value <= 0)
+        {
+            _dead.Value = true;
+        }
     }
 
     IEnumerator RespawnEvent()
